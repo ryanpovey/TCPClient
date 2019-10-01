@@ -1,8 +1,12 @@
-package com.company;
+package test.java.com.company;
+
+import com.company.TCPClientSirena;
 
 import org.junit.Test;
 
 import java.io.IOException;
+
+import main.java.com.company.TCPClient;
 
 public class TCPClientTest {
 
@@ -13,7 +17,7 @@ public class TCPClientTest {
 
         String response = client.sendMessage();
         //client.stopConnection();
-        System.out.println(response);
+        System.out.println("Response --> " + response);
     }
 
     @Test

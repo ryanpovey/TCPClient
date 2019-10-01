@@ -1,6 +1,6 @@
 package com.company;
 
-import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang.ArrayUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;

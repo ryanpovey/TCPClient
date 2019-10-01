@@ -1,4 +1,4 @@
-package com.company;
+package main.java.com.company;
 
 import org.apache.commons.lang3.ArrayUtils;
 
