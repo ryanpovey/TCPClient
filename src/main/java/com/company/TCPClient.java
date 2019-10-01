@@ -1,16 +1,13 @@
 package com.company;
 
-import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.ArrayUtils;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.Socket;
+import java.io.*;
+import java.net.*;
 import java.nio.ByteBuffer;
 import java.time.Instant;
 
-public class TCPClientSirena {
+public class TCPClient {
 
     private Socket clientSocket;
     private OutputStream out;
@@ -24,16 +21,33 @@ public class TCPClientSirena {
 
     public String sendMessage() throws IOException {
 
+        String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+                "<sirena>" +
+                "<query>" +
+                "<iclient_pub_key>" +
+                "<pub_key>MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCuNN" +
+                "drDTCHfFK4SVafOOfJeJvW2JdiV2jE2PJj7wCii/dL" +
+                "H+65QC4X0qwGOQZ+T+SRvrkEqzcf04pUwlti8cLjHjC" +
+                "ROscuyswFm02pnAjZaNl2h4nEOel8pi8tlwXpL/Vwph" +
+                "EDdrRK5Pd9fYS7x5EtuRnrWuhUUV478Nz2GW5AgQIDAQAB</pub_key>" +
+                "</iclient_pub_key>" +
+                "</query>" +
+                "</sirena>";
+
+
         byte[] header = new byte[0];
 
         //0	4	Integer	Message body length (without header)
-        byte[] msg = intToByte(12345);
+        byte[] msg = intToByte(xml.length());
+
+        System.out.println("Xml Length: " + xml.length());
+
         header = ArrayUtils.addAll(header, msg);
 
         //4	4	Integer	Request generation time (number of seconds since January 1, 1970 GMT)
-        final long epochSecond = Instant.now().getEpochSecond();
-        System.out.println(epochSecond);
-        byte[] timeMsg = longToByte(epochSecond);
+        final int epochSecond = (int) Instant.now().getEpochSecond();
+        System.out.println("Now: " + epochSecond);
+        byte[] timeMsg = intToByte(epochSecond);
         header = ArrayUtils.addAll(header, timeMsg);
 
         //8	4	Integer	Message identifier
@@ -45,7 +59,7 @@ public class TCPClientSirena {
         header = ArrayUtils.addAll(header, reservedMsg);
 
         //44	2	Integer	Client identifier ????? 2 bytes for int
-        byte[] clientMsg = intToByte(1);
+        byte[] clientMsg = intToByte2(8153);
         header = ArrayUtils.addAll(header, clientMsg);
 
         //46	1	 	1st byte of message flags
@@ -66,27 +80,34 @@ public class TCPClientSirena {
 
         out.write(header);
 
+        System.out.println(bytesToHex(header));
+
+        out.write(xml.getBytes());
+
+
         String resp = in.readLine();
         return resp;
     }
+
+    public static String bytesToHex(byte[] bytes) {
+        final char[] hexArray = "0123456789ABCDEF".toCharArray();
+
+        char[] hexChars = new char[bytes.length * 2];
+        for ( int j = 0; j < bytes.length; j++ ) {
+            int v = bytes[j] & 0xFF;
+            hexChars[j * 2] = hexArray[v >>> 4];
+            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+        }
+        return new String(hexChars);
+    }
+
 
     private static byte[] intToByte(int value) {
         return ByteBuffer.allocate(4).putInt(value).array();
     }
 
     private static byte[] intToByte2(int value) {
-        return ByteBuffer.allocate(2).putInt(value).array();
-    }
-
-    byte[] longToByte(long value)
-    {
-        byte [] data = new byte[4];
-        data[3] = (byte) value;
-        data[2] = (byte) (value >>> 8);
-        data[1] = (byte) (value >>> 16);
-        data[0] = (byte) (value >>> 32);
-
-        return data;
+        return ByteBuffer.allocate(2).putShort((short) value).array();
     }
 
     public void stopConnection() throws IOException {

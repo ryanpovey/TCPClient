@@ -1,13 +1,16 @@
 package com.company;
 
-import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.ArrayUtils;
 
-import java.io.*;
-import java.net.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.time.Instant;
 
-public class TCPClient {
+public class TCPClientSirena {
 
     private Socket clientSocket;
     private OutputStream out;
@@ -21,24 +24,10 @@ public class TCPClient {
 
     public String sendMessage() throws IOException {
 
-        String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
-                "<sirena>" +
-                "<query>" +
-                "<iclient_pub_key>\n" +
-                "<pub_key>MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCuNN" +
-                "drDTCHfFK4SVafOOfJeJvW2JdiV2jE2PJj7wCii/dL" +
-                "H+65QC4X0qwGOQZ+T+SRvrkEqzcf04pUwlti8cLjHjC" +
-                "ROscuyswFm02pnAjZaNl2h4nEOel8pi8tlwXpL/Vwph" +
-                "EDdrRK5Pd9fYS7x5EtuRnrWuhUUV478Nz2GW5AgQIDAQAB</pub_key>" +
-                "</iclient_pub_key>" +
-                "</query>" +
-                "</sirena>";
-
-
         byte[] header = new byte[0];
 
         //0	4	Integer	Message body length (without header)
-        byte[] msg = intToByte(xml.length());
+        byte[] msg = intToByte(12345);
         header = ArrayUtils.addAll(header, msg);
 
         //4	4	Integer	Request generation time (number of seconds since January 1, 1970 GMT)
@@ -56,7 +45,7 @@ public class TCPClient {
         header = ArrayUtils.addAll(header, reservedMsg);
 
         //44	2	Integer	Client identifier ????? 2 bytes for int
-        byte[] clientMsg = intToByte(8153);
+        byte[] clientMsg = intToByte(1);
         header = ArrayUtils.addAll(header, clientMsg);
 
         //46	1	 	1st byte of message flags
@@ -76,7 +65,6 @@ public class TCPClient {
         header = ArrayUtils.addAll(header, reserved);
 
         out.write(header);
-        out.write(xml.getBytes());
 
         String resp = in.readLine();
         return resp;
