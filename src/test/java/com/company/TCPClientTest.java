@@ -1,11 +1,8 @@
 package com.company;
 
-
 import org.junit.Test;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.UUID;
 
 public class TCPClientTest {
 
@@ -22,7 +19,7 @@ public class TCPClientTest {
     @Test
     public void sirena() throws IOException {
         TCPClientSirena client = new TCPClientSirena();
-        client.startConnection("193.104.87.251", 34322);
+        client.startConnection("193.104.87.251", 34323);
 
         String response = client.sendMessage();
         //client.stopConnection();
@@ -33,7 +30,7 @@ public class TCPClientTest {
     @Test
     public void sirena2() throws IOException {
         TCPClientSirena client = new TCPClientSirena();
-        client.startConnection("193.104.87.251", 34322);
+        client.startConnection("193.104.87.251", 34323);
 
         String response = client.sendMessage();
         //client.stopConnection();
