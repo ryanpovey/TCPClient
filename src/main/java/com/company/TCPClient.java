@@ -84,8 +84,19 @@ public class TCPClient {
 
         out.write(xml.getBytes());
 
+        StringBuilder sb = new StringBuilder();
 
-        String resp = in.readLine();
+        String line = in.readLine();
+
+        sb.append(line);
+
+        while (line != null) {
+            System.out.println(line);
+            line = in.readLine();
+        }
+
+
+        String resp = sb.toString();
         return resp;
     }
 
