@@ -12,7 +12,7 @@ public class TCPClientTest {
     @Test
     public void givenGreetingClient_whenServerRespondsWhenStarted_thenCorrect1() throws IOException {
         TCPClient client = new TCPClient();
-        client.startConnection("127.0.0.1", 6789);
+        client.startConnection("193.104.87.251", 34323);
 
         String response = client.sendMessage();
         //client.stopConnection();
@@ -22,7 +22,18 @@ public class TCPClientTest {
     @Test
     public void sirena() throws IOException {
         TCPClientSirena client = new TCPClientSirena();
-        client.startConnection("194.84.25.50", 34322);
+        client.startConnection("193.104.87.251", 34322);
+
+        String response = client.sendMessage();
+        //client.stopConnection();
+        System.out.println(response);
+    }
+
+
+    @Test
+    public void sirena2() throws IOException {
+        TCPClientSirena client = new TCPClientSirena();
+        client.startConnection("193.104.87.251", 34322);
 
         String response = client.sendMessage();
         //client.stopConnection();
