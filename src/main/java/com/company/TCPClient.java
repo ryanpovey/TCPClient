@@ -1,36 +1,148 @@
 package main.java.com.company;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 
-import java.io.*;
-import java.net.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TCPClient {
 
     private Socket clientSocket;
     private OutputStream out;
-    private BufferedReader in;
+    private InputStream in;
+
+    private static String bytesToHex(byte[] bytes) {
+        final char[] hexArray = "0123456789ABCDEF".toCharArray();
+
+        char[] hexChars = new char[bytes.length * 2];
+        for (int j = 0; j < bytes.length; j++) {
+            int v = bytes[j] & 0xFF;
+            hexChars[j * 2] = hexArray[v >>> 4];
+            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+        }
+        return new String(hexChars);
+    }
+
+    private static byte[] intToByte(int value) {
+        return ByteBuffer.allocate(4).putInt(value).array();
+    }
+
+    private static byte[] intToByte2(int value) {
+        return ByteBuffer.allocate(2).putShort((short) value).array();
+    }
 
     public void startConnection(String ip, int port) throws IOException {
         clientSocket = new Socket(ip, port);
         out = clientSocket.getOutputStream();
-        in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        in = clientSocket.getInputStream();
     }
 
     public String sendMessage() throws IOException {
+        send();
 
-        String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+        List<Byte> byteList = getHeaderInputStream();
+
+        System.out.println("Header : " + byteList);
+        System.out.println("Header size : " + byteList.size());
+        System.out.println("-------------------------------");
+
+        String resp = getBufferedReaderResponse();
+        return resp;
+    }
+
+    public String sendMessage1() throws IOException {
+        send();
+
+        final List<Byte> byteList = getHeaderInputStreamAndBuffered();
+        System.out.println("Header : " + byteList);
+        System.out.println("Header size : " + byteList.size());
+        System.out.println("-------------------------------");
+
+        String resp = getBufferedReaderResponse();
+        return resp;
+    }
+
+    private List<Byte> getHeaderInputStream() throws IOException {
+        byte[] inputTwo = new byte[100];
+        List<Byte> byteList = new ArrayList<>();
+        int result = 0;
+        while (result > -1 && byteList.isEmpty()) {
+            result = in.read(inputTwo);
+            if (result > -1) {
+                for (byte b : inputTwo) {
+                    byteList.add(b);
+                }
+            }
+        }
+        return byteList;
+    }
+
+    private List<Byte> getHeaderInputStreamAndBuffered() throws IOException {
+        int line;
+        int responseHeaderCount = 1;
+        List<Byte> byteList = new ArrayList<>();
+        while ((line = in.read()) != -1 && responseHeaderCount < 100) {
+            System.out.println("Int : " + line);
+            System.out.println("Char : " + ((char) line));
+            System.out.println("Count : " + responseHeaderCount);
+            byte b = (byte) line;
+            byteList.add(b);
+            responseHeaderCount++;
+        }
+        return byteList;
+    }
+
+    private String getBufferedReaderResponse() throws IOException {
+        BufferedReader inXml = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        StringBuilder responseXml = new StringBuilder();
+        String responseXmlLine;
+
+        while ((responseXmlLine = inXml.readLine()) != null && !StringUtils.equals(responseXmlLine, "</sirena>")) {
+            responseXml.append(responseXmlLine);
+        }
+        responseXml.append(responseXmlLine);
+        return responseXml.toString();
+    }
+
+    private void send() throws IOException {
+//        String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+//                "<sirena>" +
+//                "<query>" +
+//                "<iclient_pub_key>" +
+//                "<pub_key>MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCuNN" +
+//                "drDTCHfFK4SVafOOfJeJvW2JdiV2jE2PJj7wCii/dL" +
+//                "H+65QC4X0qwGOQZ+T+SRvrkEqzcf04pUwlti8cLjHjC" +
+//                "ROscuyswFm02pnAjZaNl2h4nEOel8pi8tlwXpL/Vwph" +
+//                "EDdrRK5Pd9fYS7x5EtuRnrWuhUUV478Nz2GW5AgQIDAQAB</pub_key>" +
+//                "</iclient_pub_key>" +
+//                "</query>" +
+//                "</sirena>";
+
+
+        final String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
                 "<sirena>" +
                 "<query>" +
-                "<iclient_pub_key>" +
-                "<pub_key>MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCuNN" +
-                "drDTCHfFK4SVafOOfJeJvW2JdiV2jE2PJj7wCii/dL" +
-                "H+65QC4X0qwGOQZ+T+SRvrkEqzcf04pUwlti8cLjHjC" +
-                "ROscuyswFm02pnAjZaNl2h4nEOel8pi8tlwXpL/Vwph" +
-                "EDdrRK5Pd9fYS7x5EtuRnrWuhUUV478Nz2GW5AgQIDAQAB</pub_key>" +
-                "</iclient_pub_key>" +
+                "<pricing>" +
+                "<segment>" +
+                "<departure>CPT</departure>" +
+                "<arrival>JNB</arrival>" +
+                "<date>04.10.19</date>" +
+                "</segment>" +
+                "<passenger>" +
+                "<code>ADT</code>" +
+                "<count>1</count>" +
+                "<age>30</age>" +
+                "</passenger>" +
+                "</pricing>" +
                 "</query>" +
                 "</sirena>";
 
@@ -79,46 +191,10 @@ public class TCPClient {
         header = ArrayUtils.addAll(header, reserved);
 
         out.write(header);
+        out.write(xml.getBytes());
 
         System.out.println(bytesToHex(header));
 
-        out.write(xml.getBytes());
-
-        StringBuilder sb = new StringBuilder();
-
-        String line = in.readLine();
-
-        sb.append(line);
-
-        while (line != null) {
-            System.out.println(line);
-            line = in.readLine();
-        }
-
-
-        String resp = sb.toString();
-        return resp;
-    }
-
-    public static String bytesToHex(byte[] bytes) {
-        final char[] hexArray = "0123456789ABCDEF".toCharArray();
-
-        char[] hexChars = new char[bytes.length * 2];
-        for ( int j = 0; j < bytes.length; j++ ) {
-            int v = bytes[j] & 0xFF;
-            hexChars[j * 2] = hexArray[v >>> 4];
-            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
-        }
-        return new String(hexChars);
-    }
-
-
-    private static byte[] intToByte(int value) {
-        return ByteBuffer.allocate(4).putInt(value).array();
-    }
-
-    private static byte[] intToByte2(int value) {
-        return ByteBuffer.allocate(2).putShort((short) value).array();
     }
 
     public void stopConnection() throws IOException {
@@ -126,5 +202,38 @@ public class TCPClient {
         out.close();
         clientSocket.close();
     }
+
+
+//        //Print out dont finish
+//        String line;
+//        while ((line = in.readLine()) != null) {
+//            System.out.println(line);
+//        }
+
+
+//        while((line = in.read()) != -1) {
+//
+//            // converts int to character
+//            char c = (char)line;
+//
+//            // prints character
+//            System.out.println(c);
+//            System.out.println(line);
+//        }
+
+//        String line;
+//        while ((line = in.readLine()) != null) {
+//
+//            System.out.println(line);
+//
+//            final byte[] bytes = line.getBytes();
+//
+//            for (bytes b : bytes) {
+//                System.out.println(b);
+//            }
+//
+//            System.out.println();
+//        }
+
 
 }
