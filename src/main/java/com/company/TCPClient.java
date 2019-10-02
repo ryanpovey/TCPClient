@@ -56,6 +56,7 @@ public class TCPClient {
         System.out.println("-------------------------------");
 
         String resp = getBufferedReaderResponse();
+        stopConnection();
         return resp;
     }
 
@@ -68,6 +69,7 @@ public class TCPClient {
         System.out.println("-------------------------------");
 
         String resp = getBufferedReaderResponse();
+        stopConnection();
         return resp;
     }
 
@@ -202,38 +204,5 @@ public class TCPClient {
         out.close();
         clientSocket.close();
     }
-
-
-//        //Print out dont finish
-//        String line;
-//        while ((line = in.readLine()) != null) {
-//            System.out.println(line);
-//        }
-
-
-//        while((line = in.read()) != -1) {
-//
-//            // converts int to character
-//            char c = (char)line;
-//
-//            // prints character
-//            System.out.println(c);
-//            System.out.println(line);
-//        }
-
-//        String line;
-//        while ((line = in.readLine()) != null) {
-//
-//            System.out.println(line);
-//
-//            final byte[] bytes = line.getBytes();
-//
-//            for (bytes b : bytes) {
-//                System.out.println(b);
-//            }
-//
-//            System.out.println();
-//        }
-
 
 }
