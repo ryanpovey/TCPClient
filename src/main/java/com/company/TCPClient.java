@@ -40,6 +40,14 @@ public class TCPClient {
         return ByteBuffer.allocate(2).putShort((short) value).array();
     }
 
+    private static int fromByteArray(byte[] bytes) {
+        return ByteBuffer.wrap(bytes).getInt();
+    }
+
+    private static int from2ByteArray(byte[] bytes) {
+        return ByteBuffer.wrap(bytes).getShort();
+    }
+
     public void startConnection(String ip, int port) throws IOException {
         clientSocket = new Socket(ip, port);
         out = clientSocket.getOutputStream();
@@ -55,7 +63,11 @@ public class TCPClient {
         System.out.println("Header size : " + byteList.size());
         System.out.println("-------------------------------");
 
+        getHeaderInfo(byteList);
+
         String resp = getBufferedReaderResponse();
+        System.out.println("Response Length : " + resp.length());
+
         stopConnection();
         return resp;
     }
@@ -67,6 +79,8 @@ public class TCPClient {
         System.out.println("Header : " + byteList);
         System.out.println("Header size : " + byteList.size());
         System.out.println("-------------------------------");
+
+        getHeaderInfo(byteList);
 
         String resp = getBufferedReaderResponse();
         stopConnection();
@@ -101,6 +115,36 @@ public class TCPClient {
             responseHeaderCount++;
         }
         return byteList;
+    }
+
+    private void getHeaderInfo(final List<Byte> byteList) {
+
+        byte[] msgLenBytes = new byte[] {byteList.get(0), byteList.get(1), byteList.get(2), byteList.get(3)};
+        final int msgLen = fromByteArray(msgLenBytes);
+        System.out.println("msgLen : " + msgLen);
+
+        byte[] timeBytes = new byte[] {byteList.get(4), byteList.get(5), byteList.get(6), byteList.get(7)};
+        final int time = fromByteArray(timeBytes);
+        System.out.println("time : " + time);
+
+        byte[] idMsgBytes = new byte[] {byteList.get(8), byteList.get(9), byteList.get(10), byteList.get(11)};
+        final int idMsg = fromByteArray(idMsgBytes);
+        System.out.println("idMsg : " + idMsg);
+
+        byte[] clientIdBytes = new byte[] {byteList.get(44), byteList.get(45)};
+        final int clientId = from2ByteArray(clientIdBytes);
+        System.out.println("clientId : " + clientId);
+
+        final int flag1 = byteList.get(46);
+        System.out.println("flag1 : " + flag1);
+
+        final int flag2 = byteList.get(47);
+        System.out.println("flag2 : " + flag2);
+
+        byte[] keyBytes = new byte[] {byteList.get(48), byteList.get(49), byteList.get(50), byteList.get(51)};
+        final int key = fromByteArray(keyBytes);
+        System.out.println("key : " + key);
+
     }
 
     private String getBufferedReaderResponse() throws IOException {
