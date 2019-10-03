@@ -11,7 +11,7 @@ public class TCPClientTest {
     @Test
     public void sirena1() throws IOException {
         TCPClient client = new TCPClient();
-        client.startConnection("193.104.87.251", 34323);
+        client.startConnection("127.0.0.1", 6789);
 
         String response = client.sendMessage();
         //client.stopConnection();
@@ -22,7 +22,7 @@ public class TCPClientTest {
     @Test
     public void sirena2() throws IOException {
         TCPClient client = new TCPClient();
-        client.startConnection("193.104.87.251", 34323);
+        client.startConnection("127.0.0.1", 6789);
 
         String response = client.sendMessage1();
         //client.stopConnection();

@@ -3,6 +3,7 @@ package main.java.com.company;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,6 +13,7 @@ import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class TCPClient {
@@ -58,10 +60,13 @@ public class TCPClient {
         send();
 
         List<Byte> byteList = getHeaderInputStream();
-
-        System.out.println("Header : " + byteList);
-        System.out.println("Header size : " + byteList.size());
-        System.out.println("-------------------------------");
+        //final byte[] headerBuffered = getHeaderBuffered();
+//
+//        System.out.println("Header : " + headerBuffered);
+//        System.out.println("Header size : " + headerBuffered.length);
+//        System.out.println("-------------------------------");
+//
+//        List<Byte> byteList = Arrays.asList(ArrayUtils.toObject(headerBuffered));
 
         getHeaderInfo(byteList);
 
@@ -107,14 +112,18 @@ public class TCPClient {
         int responseHeaderCount = 1;
         List<Byte> byteList = new ArrayList<>();
         while ((line = in.read()) != -1 && responseHeaderCount < 100) {
-            System.out.println("Int : " + line);
-            System.out.println("Char : " + ((char) line));
-            System.out.println("Count : " + responseHeaderCount);
             byte b = (byte) line;
             byteList.add(b);
             responseHeaderCount++;
         }
         return byteList;
+    }
+
+    private byte[] getHeaderBuffered() throws IOException {
+        byte[] inputTwo = new byte[100];
+        BufferedInputStream bufferedReader = new BufferedInputStream(in);
+        final int read = bufferedReader.read(inputTwo);
+        return inputTwo;
     }
 
     private void getHeaderInfo(final List<Byte> byteList) {
